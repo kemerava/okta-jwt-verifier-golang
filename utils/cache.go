@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"net/http"
 	"sync"
 	"time"
 
@@ -11,16 +12,16 @@ import (
 //
 // Get returns the value associated with the given key.
 type Cacher interface {
-	Get(string) (interface{}, error)
+	Get(string, *http.Client) (interface{}, error)
 }
 
 type defaultCache struct {
 	cache  *cache.Cache
-	lookup func(string) (interface{}, error)
+	lookup func(string, *http.Client) (interface{}, error)
 	mutex  *sync.Mutex
 }
 
-func (c *defaultCache) Get(key string) (interface{}, error) {
+func (c *defaultCache) Get(key string, client *http.Client) (interface{}, error) {
 	if value, found := c.cache.Get(key); found {
 		return value, nil
 	}
@@ -32,7 +33,7 @@ func (c *defaultCache) Get(key string) (interface{}, error) {
 		return value, nil
 	}
 
-	value, err := c.lookup(key)
+	value, err := c.lookup(key, client)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (c *defaultCache) Get(key string) (interface{}, error) {
 // defaultCache implements the Cacher interface
 var _ Cacher = (*defaultCache)(nil)
 
-func NewDefaultCache(lookup func(string) (interface{}, error), timeout, cleanup time.Duration) (Cacher, error) {
+func NewDefaultCache(lookup func(string, *http.Client) (interface{}, error), timeout, cleanup time.Duration) (Cacher, error) {
 	return &defaultCache{
 		cache:  cache.New(timeout, cleanup),
 		lookup: lookup,

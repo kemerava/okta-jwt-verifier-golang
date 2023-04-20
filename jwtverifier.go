@@ -25,12 +25,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/okta/okta-jwt-verifier-golang/adaptors"
-	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
-	"github.com/okta/okta-jwt-verifier-golang/discovery"
-	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
-	"github.com/okta/okta-jwt-verifier-golang/errors"
-	"github.com/okta/okta-jwt-verifier-golang/utils"
+	"github.com/kemerava/okta-jwt-verifier-golang/adaptors"
+	"github.com/kemerava/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
+	"github.com/kemerava/okta-jwt-verifier-golang/discovery"
+	"github.com/kemerava/okta-jwt-verifier-golang/discovery/oidc"
+	"github.com/kemerava/okta-jwt-verifier-golang/errors"
+	"github.com/kemerava/okta-jwt-verifier-golang/utils"
 )
 
 var (
@@ -46,8 +46,10 @@ type JwtVerifier struct {
 
 	Adaptor adaptors.Adaptor
 
+	Client *http.Client
+
 	// Cache allows customization of the cache used to store resources
-	Cache func(func(string) (interface{}, error), time.Duration, time.Duration) (utils.Cacher, error)
+	Cache func(func(string, *http.Client) (interface{}, error), time.Duration, time.Duration) (utils.Cacher, error)
 
 	metadataCache utils.Cacher
 
@@ -60,8 +62,8 @@ type Jwt struct {
 	Claims map[string]interface{}
 }
 
-func fetchMetaData(url string) (interface{}, error) {
-	resp, err := http.Get(url)
+func fetchMetaData(url string, client *http.Client) (interface{}, error) {
+	resp, err := client.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("request for metadata was not successful: %w", err)
 	}
@@ -104,6 +106,10 @@ func (j *JwtVerifier) New() *JwtVerifier {
 		j.Adaptor = adaptor.New()
 	}
 
+	if j.Client == nil {
+		j.Client = http.DefaultClient
+	}
+
 	// Default to PT2M Leeway
 	j.leeway = 120
 
@@ -129,7 +135,7 @@ func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
 		return nil, fmt.Errorf("token is not valid: %w", err)
 	}
 
-	resp, err := j.decodeJwt(jwt)
+	resp, err := j.decodeJwt(jwt, j.Client)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +174,7 @@ func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
 	return &myJwt, nil
 }
 
-func (j *JwtVerifier) decodeJwt(jwt string) (interface{}, error) {
+func (j *JwtVerifier) decodeJwt(jwt string, client *http.Client) (interface{}, error) {
 	metaData, err := j.getMetaData()
 	if err != nil {
 		return nil, err
@@ -177,7 +183,7 @@ func (j *JwtVerifier) decodeJwt(jwt string) (interface{}, error) {
 	if !ok {
 		return nil, fmt.Errorf("failed to decode JWT: missing 'jwks_uri' from metadata")
 	}
-	resp, err := j.Adaptor.Decode(jwt, jwksURI)
+	resp, err := j.Adaptor.Decode(jwt, jwksURI, client)
 	if err != nil {
 		return nil, fmt.Errorf("could not decode token: %w", err)
 	}
@@ -191,7 +197,7 @@ func (j *JwtVerifier) VerifyIdToken(jwt string) (*Jwt, error) {
 		return nil, fmt.Errorf("token is not valid: %w", err)
 	}
 
-	resp, err := j.decodeJwt(jwt)
+	resp, err := j.decodeJwt(jwt, j.Client)
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +348,7 @@ func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
 		j.metadataCache = metadataCache
 	}
 
-	value, err := j.metadataCache.Get(metaDataUrl)
+	value, err := j.metadataCache.Get(metaDataUrl, j.Client)
 	if err != nil {
 		return nil, err
 	}

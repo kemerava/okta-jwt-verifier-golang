@@ -16,8 +16,10 @@
 
 package adaptors
 
+import "net/http"
+
 type Adaptor interface {
 	New() Adaptor
 	GetKey(jwkUri string)
-	Decode(jwt string, jwkUri string) (interface{}, error)
+	Decode(jwt string, jwkUri string, client *http.Client) (interface{}, error)
 }

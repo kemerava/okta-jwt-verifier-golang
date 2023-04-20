@@ -1,10 +1,11 @@
 package utils_test
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
-	"github.com/okta/okta-jwt-verifier-golang/utils"
+	"github.com/kemerava/okta-jwt-verifier-golang/utils"
 )
 
 type Value struct {
@@ -12,7 +13,7 @@ type Value struct {
 }
 
 func TestNewDefaultCache(t *testing.T) {
-	lookup := func(key string) (interface{}, error) {
+	lookup := func(key string, client *http.Client) (interface{}, error) {
 		return &Value{key: key}, nil
 	}
 	cache, err := utils.NewDefaultCache(lookup, 5*time.Minute, 10*time.Minute)
@@ -20,7 +21,7 @@ func TestNewDefaultCache(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	first, firstErr := cache.Get("first")
+	first, firstErr := cache.Get("first", nil)
 	if firstErr != nil {
 		t.Fatalf("Expected no error, got %v", firstErr)
 	}
@@ -28,7 +29,7 @@ func TestNewDefaultCache(t *testing.T) {
 		t.Error("Expected first to be a *Value")
 	}
 
-	second, secondErr := cache.Get("second")
+	second, secondErr := cache.Get("second", nil)
 	if secondErr != nil {
 		t.Fatalf("Expected no error, got %v", secondErr)
 	}
@@ -40,7 +41,7 @@ func TestNewDefaultCache(t *testing.T) {
 		t.Error("Expected first and second to be different")
 	}
 
-	firstAgain, firstAgainErr := cache.Get("first")
+	firstAgain, firstAgainErr := cache.Get("first", nil)
 	if firstAgainErr != nil {
 		t.Fatalf("Expected no error, got %v", firstAgainErr)
 	}
