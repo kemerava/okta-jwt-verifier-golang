@@ -1,3 +1,4 @@
+// Modified by Lizaveta Kemerava, April 20, 2023: including custom client
 module github.com/kemerava/okta-jwt-verifier-golang
 
 require (

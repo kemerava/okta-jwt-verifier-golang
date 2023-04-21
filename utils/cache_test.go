@@ -1,5 +1,7 @@
 package utils_test
 
+// Modified by Lizaveta Kemerava, April 20, 2023: including custom client
+
 import (
 	"net/http"
 	"testing"

@@ -14,6 +14,8 @@
  * limitations under the License.
  ******************************************************************************/
 
+// Modified by Lizaveta Kemerava, April 20, 2023
+
 package oidc
 
 import "github.com/kemerava/okta-jwt-verifier-golang/discovery"

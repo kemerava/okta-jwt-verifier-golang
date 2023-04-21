@@ -14,6 +14,8 @@
  * limitations under the License.
  ******************************************************************************/
 
+// Modified by Lizaveta Kemerava, April 20, 2023: including custom client
+
 package adaptors
 
 import "net/http"
