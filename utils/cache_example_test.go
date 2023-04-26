@@ -4,7 +4,6 @@ package utils_test
 
 import (
 	"fmt"
-	"net/http"
 	"time"
 
 	jwtverifier "github.com/kemerava/okta-jwt-verifier-golang"
@@ -14,16 +13,16 @@ import (
 // ForeverCache caches values forever
 type ForeverCache struct {
 	values map[string]interface{}
-	lookup func(string, *http.Client) (interface{}, error)
+	lookup func(string) (interface{}, error)
 }
 
 // Get returns the value for the given key
-func (c *ForeverCache) Get(key string, client *http.Client) (interface{}, error) {
+func (c *ForeverCache) Get(key string) (interface{}, error) {
 	value, ok := c.values[key]
 	if ok {
 		return value, nil
 	}
-	value, err := c.lookup(key, client)
+	value, err := c.lookup(key)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +34,7 @@ func (c *ForeverCache) Get(key string, client *http.Client) (interface{}, error)
 var _ utils.Cacher = (*ForeverCache)(nil)
 
 // NewForeverCache takes a lookup function and returns a cache
-func NewForeverCache(lookup func(string, *http.Client) (interface{}, error), t, c time.Duration) (utils.Cacher, error) {
+func NewForeverCache(lookup func(string) (interface{}, error), t, c time.Duration) (utils.Cacher, error) {
 	return &ForeverCache{
 		values: map[string]interface{}{},
 		lookup: lookup,

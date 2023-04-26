@@ -3,7 +3,6 @@ package utils_test
 // Modified by Lizaveta Kemerava, April 20, 2023: including custom client
 
 import (
-	"net/http"
 	"testing"
 	"time"
 
@@ -15,7 +14,7 @@ type Value struct {
 }
 
 func TestNewDefaultCache(t *testing.T) {
-	lookup := func(key string, client *http.Client) (interface{}, error) {
+	lookup := func(key string) (interface{}, error) {
 		return &Value{key: key}, nil
 	}
 	cache, err := utils.NewDefaultCache(lookup, 5*time.Minute, 10*time.Minute)
@@ -23,7 +22,7 @@ func TestNewDefaultCache(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	first, firstErr := cache.Get("first", nil)
+	first, firstErr := cache.Get("first")
 	if firstErr != nil {
 		t.Fatalf("Expected no error, got %v", firstErr)
 	}
@@ -31,7 +30,7 @@ func TestNewDefaultCache(t *testing.T) {
 		t.Error("Expected first to be a *Value")
 	}
 
-	second, secondErr := cache.Get("second", nil)
+	second, secondErr := cache.Get("second")
 	if secondErr != nil {
 		t.Fatalf("Expected no error, got %v", secondErr)
 	}
@@ -43,7 +42,7 @@ func TestNewDefaultCache(t *testing.T) {
 		t.Error("Expected first and second to be different")
 	}
 
-	firstAgain, firstAgainErr := cache.Get("first", nil)
+	firstAgain, firstAgainErr := cache.Get("first")
 	if firstAgainErr != nil {
 		t.Fatalf("Expected no error, got %v", firstAgainErr)
 	}

@@ -14,14 +14,10 @@
  * limitations under the License.
  ******************************************************************************/
 
-// Modified by Lizaveta Kemerava, April 20, 2023: including custom client
-
 package adaptors
-
-import "net/http"
 
 type Adaptor interface {
 	New() Adaptor
 	GetKey(jwkUri string)
-	Decode(jwt string, jwkUri string, client *http.Client) (interface{}, error)
+	Decode(jwt string, jwkUri string) (interface{}, error)
 }
