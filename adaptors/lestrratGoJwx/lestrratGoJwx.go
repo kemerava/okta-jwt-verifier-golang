@@ -31,16 +31,17 @@ import (
 	"github.com/lestrrat-go/jwx/jws"
 )
 
-func fetchJwkSet(jwkUri string, client *http.Client) (interface{}, error) {
-	return jwk.Fetch(context.Background(), jwkUri, jwk.WithHTTPClient(client))
+func (lgj *LestrratGoJwx) fetchJwkSet(jwkUri string) (interface{}, error) {
+	return jwk.Fetch(context.Background(), jwkUri, jwk.WithHTTPClient(lgj.Client))
 }
 
 type LestrratGoJwx struct {
 	JWKSet      jwk.Set
-	Cache       func(func(string, *http.Client) (interface{}, error), time.Duration, time.Duration) (utils.Cacher, error)
+	Cache       func(func(string) (interface{}, error), time.Duration, time.Duration) (utils.Cacher, error)
 	jwkSetCache utils.Cacher
 	Timeout     time.Duration
 	Cleanup     time.Duration
+	Client      *http.Client
 }
 
 func (lgj *LestrratGoJwx) New() adaptors.Adaptor {
@@ -54,16 +55,16 @@ func (lgj *LestrratGoJwx) New() adaptors.Adaptor {
 func (lgj *LestrratGoJwx) GetKey(jwkUri string) {
 }
 
-func (lgj *LestrratGoJwx) Decode(jwt string, jwkUri string, client *http.Client) (interface{}, error) {
+func (lgj *LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) {
 	if lgj.jwkSetCache == nil {
-		jwkSetCache, err := lgj.Cache(fetchJwkSet, lgj.Timeout, lgj.Cleanup)
+		jwkSetCache, err := lgj.Cache(lgj.fetchJwkSet, lgj.Timeout, lgj.Cleanup)
 		if err != nil {
 			return nil, err
 		}
 		lgj.jwkSetCache = jwkSetCache
 	}
 
-	value, err := lgj.jwkSetCache.Get(jwkUri, client)
+	value, err := lgj.jwkSetCache.Get(jwkUri)
 	if err != nil {
 		return nil, err
 	}
