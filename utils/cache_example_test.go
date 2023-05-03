@@ -1,11 +1,13 @@
 package utils_test
 
+// Modified by Lizaveta Kemerava, April 20, 2023: including custom client
+
 import (
 	"fmt"
 	"time"
 
-	jwtverifier "github.com/okta/okta-jwt-verifier-golang"
-	"github.com/okta/okta-jwt-verifier-golang/utils"
+	jwtverifier "github.com/kemerava/okta-jwt-verifier-golang"
+	"github.com/kemerava/okta-jwt-verifier-golang/utils"
 )
 
 // ForeverCache caches values forever

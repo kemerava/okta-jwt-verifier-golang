@@ -1,10 +1,12 @@
 package utils_test
 
+// Modified by Lizaveta Kemerava, April 20, 2023: including custom client
+
 import (
 	"testing"
 	"time"
 
-	"github.com/okta/okta-jwt-verifier-golang/utils"
+	"github.com/kemerava/okta-jwt-verifier-golang/utils"
 )
 
 type Value struct {
